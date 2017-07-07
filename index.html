@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Learning D#</title>
+    <style type="text/css">
+      .bar {
+        display: inline-block;
+        background-color: #1ed382;
+        width: 30px;
+        margin-right: 4px;
+      }
+
+      svg .scatter-circle {
+        opacity: 0.5;
+        fill: blue;
+      }
+
+      svg .scatter-outer-circle {
+        opacity: 0.8;
+        stroke: #333;
+        fill: none;
+        stroke-width: 2px;
+      }
+    </style>
+</head>
+<body>
+  <h1>Learning D3</h1>
+  <p>Here we go!</p>
+
+  <h2>Data-bound paragraphs</h2>
+  <div id="dbound-ps"></div>
+
+  <h2>Very basic bars (with random-colored divs)</h2>
+  <div id="very-basic-bars"></div>
+
+  <h2>A scatter (random-colored)</h2>
+  <div id="debt-scatter"></div>
+
+  <script type="text/javascript" src="node_modules/d3/build/d3.js"></script>
+  <script type="text/javascript">
+  var randomColor = function() {
+    var bc = function() { return Math.floor((Math.random() * 1000)) };
+    var color = '#' + [bc(), bc(), bc()].map(
+      function(c) { return ('00' + c.toString(16)).substr(-2) }
+    ).join('');
+    console.log(color)
+    return color;
+  }
+
+  d3.select('#dbound-ps').selectAll('p')
+    .data([1, 2, 3, 4])
+    .enter()
+    .append('p')
+    .text(function(d) { return 'Paragraph ' + d })
+    .style('color', 'red')
+
+  d3.select('#very-basic-bars').selectAll('div.bar')
+    .data([67, 29, 12, 89, 100, 67, 34, 28, 10, 23, 76, 25, 88, 20, 73, 22, 18 ])
+    .enter()
+    .append('div')
+    .classed('bar', true)
+    .style('height', function(d) { return d + 'px' })
+    .style('background-color', randomColor)
+
+  // Deuda
+  var debtCfg = {
+    w: 500,
+    h: 400,
+    padding: 10
+  }
+
+  var debtSvg = d3.select('#debt-scatter').append('svg')
+    .attr('width', debtCfg.w + (debtCfg.padding * 2))
+    .attr('height', debtCfg.h + (debtCfg.padding * 2));
+
+  var buildScatter = function(plane, cfg, data) {
+    var xSc = d3.scaleLinear()
+      .domain([
+        d3.min(data, function(d) {return d.anio}),
+        d3.max(data, function(d) {return d.anio})
+      ])
+      .range([0, cfg.w]);
+    var ySc = d3.scaleLinear()
+      .domain([
+        d3.min(data, function(d) {return d.millones}),
+        d3.max(data, function(d) {return d.millones})
+      ])
+      .range([cfg.h, 0])
+    var rSc = d3.scaleLinear()
+      .domain([
+        d3.min(data, function(d) {return d.porcentajePIB}),
+        d3.max(data, function(d) {return d.porcentajePIB})
+      ])
+      .range([4, 14])
+
+    var addCircles = function(handle) {
+      return handle.data(data)
+        .enter()
+        .append('circle')
+        .attr('cx', function(d) {
+          return xSc(d.anio) + cfg.padding
+        })
+        .attr('cy', function(d) {
+          return ySc(d.millones) + cfg.padding
+        })
+    }
+
+    addCircles(plane.selectAll('circle.scatter-circle'))
+      .attr('r', 10)
+      .style('fill', randomColor)
+      .classed('scatter-circle', true)
+
+    addCircles(plane.selectAll('circle.scatter-outer-circle'))
+      .attr('r', function(d) {
+        return rSc(d.porcentajePIB)
+      })
+      .classed('scatter-outer-circle', true)
+  }
+
+  var parseDeudaRow = function(d) {
+    return {
+      anio: parseInt(d.anio),
+      millones: parseFloat(d.millones),
+      porcentajePIB: parseFloat(d.porcentajePIB)
+    }
+  }
+
+  d3.csv('deuda.csv').row(parseDeudaRow).get(function(data) {
+    console.log(data);
+    buildScatter(debtSvg, debtCfg, data);
+  })
+
+  </script>
+</body>
+</html>
