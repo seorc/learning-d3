@@ -65,9 +65,9 @@
 
   // Deuda
   var debtCfg = {
-    w: 500,
+    w: 600,
     h: 400,
-    padding: 10
+    padding: 70
   }
 
   var debtSvg = d3.select('#debt-scatter').append('svg')
@@ -83,7 +83,7 @@
       .range([0, cfg.w]);
     var ySc = d3.scaleLinear()
       .domain([
-        d3.min(data, function(d) {return d.millones}),
+        0,
         d3.max(data, function(d) {return d.millones})
       ])
       .range([cfg.h, 0])
@@ -93,6 +93,10 @@
         d3.max(data, function(d) {return d.porcentajePIB})
       ])
       .range([4, 14])
+
+    var xAxis = d3.axisBottom(xSc)
+
+    var yAxis = d3.axisLeft(ySc)
 
     var addCircles = function(handle) {
       return handle.data(data)
@@ -116,6 +120,16 @@
         return rSc(d.porcentajePIB)
       })
       .classed('scatter-outer-circle', true)
+
+    plane.append('g')
+      .attr('transform', 'translate(' + cfg.padding + ', ' + (cfg.h + cfg.padding) + ')')
+      .call(xAxis)
+
+    plane.append('g')
+      .attr('transform', 'translate(' + cfg.padding + ', ' + cfg.padding + ')')
+      .call(yAxis)
+
+
   }
 
   var parseDeudaRow = function(d) {
